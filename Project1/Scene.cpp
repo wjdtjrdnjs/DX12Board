@@ -14,9 +14,9 @@ std::vector<SceneObject> BuildBlackboardScene()
     const XMFLOAT4 board = { 0.23f, 0.36f, 0.22f, 1.0f };
     const XMFLOAT4 yellowE = { 0.98f, 0.92f, 0.42f, 1.0f };
     const XMFLOAT4 greenE = { 0.30f, 0.50f, 0.15f, 1.0f };
-    const XMFLOAT4 paper = { 0.90f, 0.88f, 0.82f, 1.0f }; // ★ [5단계] 팔레트 받침
+    const XMFLOAT4 paper = { 0.90f, 0.88f, 0.82f, 1.0f }; // 팔레트 받침
 
-    // ★ [5단계] 도구 정보(tool, toolIndex)까지 받도록 확장. 뒤쪽 인자는 기본값 있음
+    // 박스 추가 람다 (tool, toolIndex 는 클릭 가능한 도구일 때만 지정)
     auto add = [&objects](XMFLOAT3 pos, XMFLOAT3 scale, XMFLOAT4 color,
         ObjectType type = ObjectType::Default,
         ToolKind tool = ToolKind::None, int toolIndex = 0)
@@ -47,19 +47,19 @@ std::vector<SceneObject> BuildBlackboardScene()
     const float trayTop = y - h * 0.5f - t;
     add({ 0.0f, trayTop - 0.02f, -0.12f }, { 3.6f, 0.04f, 0.30f }, woodDark);
 
-    // ★ [5단계] 지우개: 박스 2개 모두 Eraser 로 표시 (어느 쪽을 클릭해도 선택)
+    // 지우개: 박스 2개 모두 Eraser 로 표시 (어느 쪽을 클릭해도 선택)
     add({ -1.2f, trayTop + 0.04f, -0.14f }, { 0.30f, 0.08f, 0.12f }, yellowE,
         ObjectType::Default, ToolKind::Eraser, 0);
     add({ -1.2f, trayTop + 0.09f, -0.14f }, { 0.30f, 0.02f, 0.12f }, greenE,
         ObjectType::Default, ToolKind::Eraser, 0);
 
-    // ★ [5단계] 분필 4개: 간격을 0.4m로 줄여서 팔레트 자리 확보 (x: -0.6 ~ 0.6)
+    // 분필 4개: 0.4m 간격 (x: -0.6 ~ 0.6)
     const XMFLOAT3 chalkSize = { 0.18f, 0.03f, 0.03f };
     for (int i = 0; i < kChalkCount; ++i)
         add({ -0.6f + 0.4f * i, trayTop + 0.015f, -0.14f }, chalkSize, kChalkColors[i],
             ObjectType::Default, ToolKind::Chalk, i);
 
-    // ★ [5단계] 팔레트: 받침판 + 색 블록 8개 (x: 0.95 ~ 1.7)
+    // 팔레트: 받침판 + 색 블록 8개 (x: 0.95 ~ 1.7)
     add({ 1.325f, trayTop + 0.005f, -0.14f }, { 0.70f, 0.01f, 0.16f }, paper);
 
     const float cube = 0.06f; // 색 블록 한 변
@@ -68,7 +68,7 @@ std::vector<SceneObject> BuildBlackboardScene()
             { cube, cube, cube }, kPaletteColors[i],
             ObjectType::Default, ToolKind::Palette, i);
 
-    // ★ [7-2단계] 파일 버튼 패널 (칠판 오른쪽)
+    // 파일 버튼 패널 (칠판 오른쪽)
     // 칠판 오른쪽 테두리 바깥 = w/2 + t = 2.12 → 조금 띄워서 패널 중심 x = 2.56
     const float panelX = w * 0.5f + t + 0.44f;
     add({ panelX, 1.62f, 0.04f }, { 0.62f, 1.02f, 0.04f }, wood); // 받침 패널 (뒤쪽)

@@ -1,6 +1,6 @@
 ﻿#pragma once
 // =============================================================================
-// ImageIO.h - ★ [7단계] WIC(Windows Imaging Component)로 이미지 파일 읽기/쓰기
+// ImageIO.h - WIC(Windows Imaging Component)로 이미지 파일 읽기/쓰기
 // DX 와 무관한 순수 이미지 처리 모듈. 실패하면 std::runtime_error 를 던짐
 // =============================================================================
 #include <windows.h>

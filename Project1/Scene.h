@@ -35,7 +35,7 @@ inline const DirectX::XMFLOAT4 kPaletteColors[kPaletteCount] =
     { 0.08f, 0.08f, 0.08f, 1.0f },
 };
 
-// ★ [7-2단계] 파일 버튼. 순서 = 라벨 아틀라스에서 위에서부터의 순서
+// 파일 버튼. 순서 = 라벨 아틀라스에서 위에서부터의 순서
 enum class ButtonId
 {
     New = 0,  // 새로 만들기
@@ -51,7 +51,7 @@ enum class ObjectType
 {
     Default,
     Board,
-    Label,    // ★ [7-2단계] 앞면에 라벨 텍스처가 붙는 버튼
+    Label,    // 앞면에 라벨 텍스처가 붙는 버튼
 };
 
 enum class ToolKind
@@ -60,7 +60,7 @@ enum class ToolKind
     Chalk,
     Eraser,
     Palette,
-    Button,   // ★ [7-2단계] toolIndex = ButtonId
+    Button,   // toolIndex = ButtonId
 };
 
 struct SceneObject
@@ -72,9 +72,9 @@ struct SceneObject
     ToolKind          tool = ToolKind::None;
     int               toolIndex = 0;
     float             lift = 0.0f;
-    DirectX::XMFLOAT4 uvRect = { 0.0f, 0.0f, 1.0f, 1.0f }; // ★ [7-2단계] 아틀라스 영역 (xy 시작, zw 크기)
-    float             push = 0.0f;      // ★ [7-2단계] 눌렸을 때 안쪽(+Z)으로 들어가는 거리
-    float             highlight = 0.0f; // ★ [7-2단계] 마우스 올렸을 때 밝기 (0~1)
+    DirectX::XMFLOAT4 uvRect = { 0.0f, 0.0f, 1.0f, 1.0f }; // 아틀라스 영역 (xy 시작, zw 크기)
+    float             push = 0.0f;      // 눌렸을 때 안쪽(+Z)으로 들어가는 거리
+    float             highlight = 0.0f; // 마우스 올렸을 때 밝기 (0~1)
 };
 
 std::vector<SceneObject> BuildBlackboardScene();

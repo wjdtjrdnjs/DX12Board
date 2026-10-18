@@ -13,7 +13,7 @@ void Board::Init(ID3D12Device* device, UINT width, UINT height,
     m_width = width;
     m_height = height;
 
-    // ---------------- 텍스처 (3단계와 동일) ----------------
+    // ---------------- 칠판 텍스처 (렌더 타겟 + SRV) ----------------
     D3D12_RESOURCE_DESC desc = Texture2DDesc(width, height, DXGI_FORMAT_R8G8B8A8_UNORM,
         D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
     D3D12_CLEAR_VALUE clear = {};
@@ -37,10 +37,10 @@ void Board::Init(ID3D12Device* device, UINT width, UINT height,
     srv.Texture2D.MipLevels = 1;
     device->CreateShaderResourceView(m_texture.Get(), &srv, srvHandle);
 
-    // ---------------- ★ [4단계] 브러시 파이프라인 ----------------
+    // ---------------- 브러시 파이프라인 ----------------
     BuildPipeline(device);
 
-    // ---------------- ★ [4단계] 프레임별 인스턴스 버퍼 ----------------
+    // ---------------- 프레임별 인스턴스 버퍼 ----------------
     const UINT64 bufferSize = sizeof(StampInstance) * kMaxStampsPerFrame; // 256KB
     D3D12_HEAP_PROPERTIES uploadHeap = HeapProps(D3D12_HEAP_TYPE_UPLOAD);
     D3D12_RESOURCE_DESC bufferDesc = BufferDesc(bufferSize);
@@ -63,7 +63,7 @@ void Board::Init(ID3D12Device* device, UINT width, UINT height,
 }
 
 // -----------------------------------------------------------------------------
-// ★ [4단계] 브러시 파이프라인: 루트 시그니처(빈 것) + PSO 2개
+// 브러시 파이프라인: 루트 시그니처(빈 것) + PSO 2개(분필, 지우개)
 // -----------------------------------------------------------------------------
 void Board::BuildPipeline(ID3D12Device* device)
 {
@@ -139,13 +139,13 @@ void Board::BuildPipeline(ID3D12Device* device)
 }
 
 // -----------------------------------------------------------------------------
-// ★ [4단계] 선 그리기: 이전 점 → 현재 점 사이에 일정 간격으로 도장
+// 선 그리기: 이전 점 → 현재 점 사이에 일정 간격으로 도장
 // 마우스 이벤트는 띄엄띄엄 오니까 사이를 채워야 선이 끊기지 않음
 // -----------------------------------------------------------------------------
 void Board::StrokeTo(XMFLOAT2 uv, const Brush& brush)
 {
     const XMFLOAT2 p = { uv.x * m_width, uv.y * m_height };       // UV → 텍스처 픽셀
-    const float radius = brush.EffectiveRadius(); // ★ [5단계]
+    const float radius = brush.EffectiveRadius(); // 지우개는 4배 크기
 
     // 선의 첫 점: 도장 하나 찍고 시작
     if (!m_hasLast)
@@ -207,7 +207,7 @@ void Board::AddStamp(XMFLOAT2 pixel, float radius, const Brush& brush)
 }
 
 // -----------------------------------------------------------------------------
-// ★ [4단계] 대기열 → GPU 명령
+// 대기열 → GPU 명령
 // -----------------------------------------------------------------------------
 void Board::Flush(ID3D12GraphicsCommandList* cmd, UINT frameIndex)
 {
@@ -276,7 +276,7 @@ void Board::Transition(ID3D12GraphicsCommandList* cmd, D3D12_RESOURCE_STATES aft
 }
 
 // -----------------------------------------------------------------------------
-// ★ [7단계] 저장/불러오기 지원
+// 저장/불러오기 지원
 // -----------------------------------------------------------------------------
 void Board::DiscardPending()
 {

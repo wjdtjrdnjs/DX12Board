@@ -1,8 +1,8 @@
 ﻿#pragma once
 // =============================================================================
 // Shaders.h - HLSL 소스
-//   kShaderSource      : 씬 그리기 (박스, 칠판 면)
-//   kBrushShaderSource : ★ [4단계] 칠판 텍스처에 도장 찍기
+//   kShaderSource      : 씬 그리기 (박스, 칠판 면, 버튼)
+//   kBrushShaderSource : 칠판 텍스처에 도장 찍기
 // =============================================================================
 
 inline constexpr char kShaderSource[] = R"HLSL(
@@ -11,8 +11,8 @@ cbuffer ObjectCB : register(b0)
 {
     float4x4 gWorld;
     float4   gColor;
-    float4   gUVRect;  // ★ [7-2단계] 라벨 아틀라스 영역 (xy 시작, zw 크기)
-    float4   gParams;  // ★ [7-2단계] x = 하이라이트 (0~1)
+    float4   gUVRect;  // 라벨 아틀라스 영역 (xy 시작, zw 크기)
+    float4   gParams;  // x = 하이라이트 (0~1)
 };
 
 cbuffer FrameCB : register(b1)
@@ -24,7 +24,7 @@ cbuffer FrameCB : register(b1)
 };
 
 Texture2D    gBoardTex : register(t0);
-Texture2D    gLabelTex : register(t1);  // ★ [7-2단계] 버튼 라벨 아틀라스
+Texture2D    gLabelTex : register(t1);  // 버튼 라벨 아틀라스
 SamplerState gSampler  : register(s0);
 
 struct VSIn
@@ -58,7 +58,7 @@ float Lighting(float3 normalW)
     return 0.35f + 0.65f * saturate(dot(n, toLight));
 }
 
-// ★ [7-2단계] 마우스 올린 물체를 25% 밝게
+// 마우스 올린 물체를 25% 밝게
 float3 ApplyHighlight(float3 color)
 {
     return color * (1.0f + 0.25f * gParams.x);
@@ -88,7 +88,7 @@ float4 PSBoard(VSOut pin) : SV_TARGET
     return float4(color, 1.0f);
 }
 
-// ★ [7-2단계] 버튼: 앞면(-Z)에만 라벨, 나머지 면은 단색
+// 버튼: 앞면(-Z)에만 라벨, 나머지 면은 단색
 float4 PSLabel(VSOut pin) : SV_TARGET
 {
     // 스케일 때문에 노멀 길이가 변해 있으므로 정규화 후 방향 판정
@@ -108,7 +108,7 @@ float4 PSLabel(VSOut pin) : SV_TARGET
 )HLSL";
 
 // -----------------------------------------------------------------------------
-// ★ [4단계] 브러시 셰이더: 도장 하나 = 사각형 하나 (인스턴스)
+// 브러시 셰이더: 도장 하나 = 사각형 하나 (인스턴스)
 // 정점 버퍼 없이 SV_VertexID(0~3)로 사각형 꼭짓점을 만들어냄
 // -----------------------------------------------------------------------------
 inline constexpr char kBrushShaderSource[] = R"HLSL(

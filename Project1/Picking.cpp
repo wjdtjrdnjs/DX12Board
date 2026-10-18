@@ -5,8 +5,8 @@
 #include "Camera.h"
 #include "Scene.h"
 #include <cmath>
-#include <cfloat>   // ★ [5단계] FLT_MAX
-#include <utility>  // ★ [5단계] std::swap
+#include <cfloat>   // FLT_MAX
+#include <utility>  // std::swap
 
 using namespace DirectX;
 
@@ -48,7 +48,7 @@ bool RayHitBoard(const Ray& ray, XMFLOAT2& outUV)
 }
 
 // -----------------------------------------------------------------------------
-// ★ [5단계] 슬랩(Slab) 방식
+// 광선 vs AABB: 슬랩(Slab) 방식
 // 박스 = x, y, z 각 축의 "두 평면 사이 구간(슬랩)" 3개가 겹친 영역.
 // 축마다 광선이 슬랩에 들어가는 t(tEnter)와 나오는 t(tExit)를 구하고,
 // 세 축 구간의 교집합 [가장 늦은 진입, 가장 이른 탈출] 이 비어있지 않으면 충돌

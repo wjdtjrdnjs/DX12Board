@@ -47,7 +47,7 @@ public:
     UINT Width() const { return m_width; }
     UINT Height() const { return m_height; }
 
-    // ★ [7단계] 저장/불러오기용 ← 이 부분이 빠졌던 것
+    // 저장/불러오기용
     ID3D12Resource* Texture() const { return m_texture.Get(); }
     void DiscardPending(); // 대기 중인 도장/클리어 버리기 (불러오기 직전)
 

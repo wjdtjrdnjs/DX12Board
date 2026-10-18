@@ -71,7 +71,7 @@ void SavePngBGRA(const wchar_t* path, UINT width, UINT height, const std::vector
 
 // -----------------------------------------------------------------------------
 // 불러오기: 디코더 → 포맷 변환기 → (크기가 다를 때만) 크기 조절기
-//          → ★ 최종 포맷 확인(다르면 변환기 하나 더) → CopyPixels
+//          → 최종 포맷 확인(다르면 변환기 하나 더) → CopyPixels
 // 단계들이 "파이프라인"으로 연결만 되고, 마지막 CopyPixels 때 한 번에 실행됨
 // -----------------------------------------------------------------------------
 void LoadImageFitPremulRGBA(const wchar_t* path, UINT targetW, UINT targetH, std::vector<uint8_t>& out)
@@ -96,7 +96,7 @@ void LoadImageFitPremulRGBA(const wchar_t* path, UINT targetW, UINT targetH, std
     Check(converter->Initialize(frame.Get(), GUID_WICPixelFormat32bppPRGBA,
         WICBitmapDitherTypeNone, nullptr, 0.0, WICBitmapPaletteTypeCustom), "Format Convert");
 
-    // ★ 파이프라인의 "현재 마지막 단계"를 가리키는 변수
+    // 파이프라인의 "현재 마지막 단계"를 가리키는 변수
     //   변환기, 크기 조절기 모두 IWICBitmapSource 를 상속해서 부모 타입 하나로 가리킬 수 있음
     ComPtr<IWICBitmapSource> source = converter;
 
@@ -112,7 +112,7 @@ void LoadImageFitPremulRGBA(const wchar_t* path, UINT targetW, UINT targetH, std
     if (dstW > targetW) dstW = targetW;
     if (dstH > targetH) dstH = targetH;
 
-    // ★ 크기가 다를 때만 크기 조절기 연결 (직접 저장한 PNG 는 크기가 같아서 그대로 통과)
+    // 크기가 다를 때만 크기 조절기 연결 (직접 저장한 PNG 는 크기가 같아서 그대로 통과)
     if (dstW != srcW || dstH != srcH)
     {
         ComPtr<IWICBitmapScaler> scaler;
@@ -121,14 +121,14 @@ void LoadImageFitPremulRGBA(const wchar_t* path, UINT targetW, UINT targetH, std
         source = scaler; // 파이프라인 끝 = 크기 조절기
     }
 
-    // 4) ★ 최종 포맷 확인
+    // 4) 최종 포맷 확인
     //   크기 조절기는 입력과 "다른 픽셀 포맷"으로 내보낼 수 있음 (예: RGBA 대신 BGRA 순서)
     //   확인 없이 RGBA 로 읽으면 R 과 B 가 뒤바뀌어 색이 변함 → 다르면 변환기를 하나 더 붙임
     WICPixelFormatGUID finalFormat = {};
     Check(source->GetPixelFormat(&finalFormat), "GetPixelFormat");
     if (finalFormat != GUID_WICPixelFormat32bppPRGBA)
     {
-        // 디버그 실행(F5) 시 VS "출력" 창에 표시 → 실제로 포맷이 바뀌었는지 확인용
+        // 디버그 실행(F5) 시 VS "출력" 창에 표시
         OutputDebugStringA("[ImageIO] scaler output format differs -> converting back to 32bppPRGBA\n");
 
         ComPtr<IWICFormatConverter> fixer;

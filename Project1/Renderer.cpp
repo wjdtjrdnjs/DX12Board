@@ -4,7 +4,7 @@
 #include "Renderer.h"
 #include "Camera.h"
 #include "Shaders.h"
-#include "LabelAtlas.h" // ★ [7-2단계]
+#include "LabelAtlas.h" // 버튼 라벨 텍스처 생성
 #include <DirectXMath.h>
 #include <cstring>
 #include <cstdint>
@@ -18,30 +18,30 @@ namespace
     {
         XMFLOAT3 pos;
         XMFLOAT3 normal;
-        XMFLOAT2 uv;      // ★ [3단계] 텍스처 좌표
+        XMFLOAT2 uv;      // 텍스처 좌표
     };
 
-    struct ObjectConstants  // 루트 상수 b0 (★ [7-2단계] 28개 float)
+    struct ObjectConstants  // 루트 상수 b0 (28개 float)
     {
         XMFLOAT4X4 world;
         XMFLOAT4   color;
-        XMFLOAT4   uvRect;  // ★ [7-2단계]
-        XMFLOAT4   params;  // ★ [7-2단계] x = 하이라이트
+        XMFLOAT4   uvRect;  // 라벨 아틀라스 영역 (xy 시작, zw 크기)
+        XMFLOAT4   params;  // x = 하이라이트
     };
 
-    struct FrameConstants   // 루트 상수 b1 (★ [5단계] 28개 float)
+    struct FrameConstants   // 루트 상수 b1 (28개 float)
     {
         XMFLOAT4X4 viewProj;
         XMFLOAT4   lightDir;
-        XMFLOAT4   cursor;      // ★ [5단계] uv.x, uv.y, 반지름, 표시 여부
-        XMFLOAT4   cursorColor; // ★ [5단계]
+        XMFLOAT4   cursor;      // uv.x, uv.y, 반지름, 표시 여부
+        XMFLOAT4   cursorColor; // 커서 원 색
     };
 
     enum RootParam : UINT
     {
         kRootObject = 0,   // b0
         kRootFrame = 1,    // b1
-        kRootTextures = 2, // ★ [7-2단계] t0(칠판) ~ t1(라벨) 디스크립터 테이블 (이름 변경)
+        kRootTextures = 2, // t0(칠판) ~ t1(라벨) 디스크립터 테이블
     };
 }
 
@@ -60,7 +60,7 @@ void Renderer::Init(HWND hwnd, UINT width, UINT height)
     BuildPipeline();
     BuildGeometry();
     InitBoard();
-    CreateLabelAtlas();   // ★ [7-2단계]
+    CreateLabelAtlas();   // 버튼 라벨 텍스처
 
     m_initialized = true;
 }
@@ -136,7 +136,7 @@ void Renderer::CreateDevice(HWND hwnd)
     ThrowIfFailed(m_device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&m_dsvHeap)), "DSV Heap");
     CreateDepthBuffer();
 
-    // ★ [7-2단계] SRV 힙 2칸: 0번 = 칠판 텍스처, 1번 = 버튼 라벨 아틀라스
+    // SRV 힙 2칸: 0번 = 칠판 텍스처, 1번 = 버튼 라벨 아틀라스
     D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
     srvHeapDesc.NumDescriptors = 2;
     srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
@@ -190,11 +190,11 @@ void Renderer::CreateDepthBuffer()
 }
 
 // -----------------------------------------------------------------------------
-// 루트 시그니처 + PSO (일반 / 칠판 / ★ 버튼)
+// 루트 시그니처 + PSO (일반 / 칠판 / 버튼)
 // -----------------------------------------------------------------------------
 void Renderer::BuildPipeline()
 {
-    // ★ [7-2단계] t0, t1 연속 2칸짜리 디스크립터 범위 (SRV 힙 0번, 1번과 대응)
+    // t0, t1 연속 2칸짜리 디스크립터 범위 (SRV 힙 0번, 1번과 대응)
     D3D12_DESCRIPTOR_RANGE srvRange = {};
     srvRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
     srvRange.NumDescriptors = 2;
@@ -251,7 +251,7 @@ void Renderer::BuildPipeline()
     ComPtr<ID3DBlob> vs = CompileShader(kShaderSource, "VSMain", "vs_5_0");
     ComPtr<ID3DBlob> ps = CompileShader(kShaderSource, "PSMain", "ps_5_0");
     ComPtr<ID3DBlob> psBoard = CompileShader(kShaderSource, "PSBoard", "ps_5_0");
-    ComPtr<ID3DBlob> psLabel = CompileShader(kShaderSource, "PSLabel", "ps_5_0"); // ★ [7-2단계]
+    ComPtr<ID3DBlob> psLabel = CompileShader(kShaderSource, "PSLabel", "ps_5_0"); // 버튼용
 
     D3D12_INPUT_ELEMENT_DESC inputLayout[] =
     {
@@ -303,7 +303,7 @@ void Renderer::BuildPipeline()
     pso.PS = { psBoard->GetBufferPointer(), psBoard->GetBufferSize() };
     ThrowIfFailed(m_device->CreateGraphicsPipelineState(&pso, IID_PPV_ARGS(&m_boardPso)), "Board PSO");
 
-    // ★ [7-2단계] 버튼 PSO: 픽셀 셰이더만 교체
+    // 버튼 PSO: 픽셀 셰이더만 교체
     pso.PS = { psLabel->GetBufferPointer(), psLabel->GetBufferSize() };
     ThrowIfFailed(m_device->CreateGraphicsPipelineState(&pso, IID_PPV_ARGS(&m_labelPso)), "Label PSO");
 }
@@ -325,7 +325,7 @@ ComPtr<ID3D12Resource> Renderer::CreateUploadBuffer(const void* data, UINT64 siz
 }
 
 // -----------------------------------------------------------------------------
-// 단위 박스. ★ [3단계] 면마다 UV 추가
+// 단위 박스(-0.5 ~ 0.5). 면마다 노멀이 달라 6면 × 4정점 = 24개
 // 각 면을 바깥에서 볼 때: 좌하(0,1) → 좌상(0,0) → 우상(1,0) → 우하(1,1)
 // 텍스처 좌표는 좌상단이 (0,0), 아래로 갈수록 v 증가
 // -----------------------------------------------------------------------------
@@ -369,7 +369,7 @@ void Renderer::BuildGeometry()
 
     m_vbv.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
     m_vbv.SizeInBytes = vbSize;
-    m_vbv.StrideInBytes = sizeof(Vertex); // ★ [3단계] 32바이트로 늘어남
+    m_vbv.StrideInBytes = sizeof(Vertex); // 정점 하나 = 32바이트 (위치 + 노멀 + UV)
 
     m_ibv.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
     m_ibv.SizeInBytes = ibSize;
@@ -378,7 +378,7 @@ void Renderer::BuildGeometry()
 
 // -----------------------------------------------------------------------------
 // 칠판 텍스처 생성 + 초기 클리어
-// ★ [4단계] 테스트 패턴 대신 Board::Init 이 요청해 둔 투명 클리어를 Flush 로 실행
+// Board::Init 이 요청해 둔 투명 클리어를 Flush 로 실행한 뒤 읽기 상태로 전환
 // -----------------------------------------------------------------------------
 void Renderer::InitBoard()
 {
@@ -472,7 +472,7 @@ void Renderer::Render(const Camera& camera, const std::vector<SceneObject>& obje
     ID3D12PipelineState* currentPso = nullptr;
     for (const SceneObject& obj : objects)
     {
-        // ★ [7-2단계] 종류별 PSO 선택
+        // 종류별 PSO 선택
         ID3D12PipelineState* wantPso = m_pso.Get();
         switch (obj.type)
         {
@@ -486,7 +486,7 @@ void Renderer::Render(const Camera& camera, const std::vector<SceneObject>& obje
             currentPso = wantPso;
         }
 
-        // ★ [7-2단계] lift(위로) + push(안쪽으로) 반영
+        // lift(위로) + push(안쪽으로) 반영
         XMMATRIX world = XMMatrixScaling(obj.scale.x, obj.scale.y, obj.scale.z)
             * XMMatrixTranslation(obj.position.x,
                 obj.position.y + obj.lift,
@@ -495,8 +495,8 @@ void Renderer::Render(const Camera& camera, const std::vector<SceneObject>& obje
         ObjectConstants oc;
         XMStoreFloat4x4(&oc.world, XMMatrixTranspose(world));
         oc.color = obj.color;
-        oc.uvRect = obj.uvRect;                              // ★ [7-2단계]
-        oc.params = XMFLOAT4(obj.highlight, 0.0f, 0.0f, 0.0f); // ★ [7-2단계]
+        oc.uvRect = obj.uvRect;                              // 버튼 라벨의 아틀라스 영역
+        oc.params = XMFLOAT4(obj.highlight, 0.0f, 0.0f, 0.0f); // x = 마우스 hover 하이라이트
 
         m_cmdList->SetGraphicsRoot32BitConstants(kRootObject, sizeof(ObjectConstants) / 4, &oc, 0);
         m_cmdList->DrawIndexedInstanced(m_indexCount, 1, 0, 0, 0);
@@ -535,11 +535,11 @@ void Renderer::MoveToNextFrame()
 }
 
 // -----------------------------------------------------------------------------
-// ★ [7-2단계] 버튼 라벨 아틀라스: CPU 에서 그리기 → 밉맵 → 텍스처 업로드 → SRV(1번 칸)
+// 버튼 라벨 아틀라스: CPU 에서 그리기 → 밉맵 → 텍스처 업로드 → SRV(1번 칸)
 // -----------------------------------------------------------------------------
 void Renderer::CreateLabelAtlas()
 {
-    // 1) CPU 이미지 + 밉맵 (6단계: 512 → 256 → ... → 16)
+    // 1) CPU 이미지 + 밉맵 6장 (가로 512 → 256 → ... → 16)
     ImageRGBA base = BuildButtonLabelAtlas();
     std::vector<ImageRGBA> mips = GenerateMipChain(base, 6);
     const UINT mipCount = (UINT)mips.size();
@@ -616,7 +616,7 @@ void Renderer::CreateLabelAtlas()
 }
 
 // =============================================================================
-// ★ [7단계] 저장/불러오기
+// 저장/불러오기 (칠판 텍스처 ↔ CPU 픽셀 배열)
 // =============================================================================
 
 // 프레임 사이(MoveToNextFrame 직후)에는 현재 프레임 할당자를 GPU가 다 썼음이 보장돼서 리셋 가능

@@ -18,14 +18,14 @@ public:
 
 private:
     void PaintAt(int x, int y);
-    int  PickObject(int x, int y);          // ★ [7-2단계] 클릭 가능한 물체 인덱스 (-1 = 없음)
-    bool TryClickObject(int x, int y);      // ★ [7-2단계] 도구 선택 또는 버튼 누르기
+    int  PickObject(int x, int y);          // 클릭 가능한 물체 인덱스 (-1 = 없음)
+    bool TryClickObject(int x, int y);      // 도구 선택 또는 버튼 누르기
     void SelectTool(ToolKind kind, int index);
     void ChangeBrushSize(float delta);
-    void UpdateCursor();                    // ★ [7-2단계] hover 하이라이트 포함
+    void UpdateCursor();                    // hover 하이라이트 포함
     void UpdateTitle();
 
-    // ★ [7-2단계] 버튼
+    // 버튼
     void PressButton(int buttonId);         // 눌림 애니메이션 시작
     void UpdateButtonAnimation(float dt);   // 애니메이션 진행, 끝나면 기능 실행
     void ExecuteButton(int buttonId);       // 버튼 → 파일 기능 연결
@@ -54,7 +54,7 @@ private:
     std::wstring m_currentPath;
     bool         m_dirty = false;
 
-    // ★ [7-2단계]
+    // 버튼 상태
     int   m_hoverIndex = -1;     // 마우스가 올라가 있는 물체 (m_objects 인덱스)
     int   m_pressedButton = -1;  // 눌리는 중인 버튼 (ButtonId, -1 = 없음)
     float m_pressTimer = 0.0f;   // 눌림 애니메이션 남은 시간

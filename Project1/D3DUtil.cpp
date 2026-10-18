@@ -35,7 +35,7 @@ D3D12_RESOURCE_DESC BufferDesc(UINT64 size)
     return d;
 }
 
-// ★ [3단계] 2D 텍스처 (깊이 버퍼, 칠판 텍스처가 공용으로 사용)
+// 2D 텍스처 설명 (깊이 버퍼, 칠판 텍스처, 라벨 텍스처가 공용으로 사용)
 D3D12_RESOURCE_DESC Texture2DDesc(UINT width, UINT height, DXGI_FORMAT format,
     D3D12_RESOURCE_FLAGS flags)
 {
@@ -52,7 +52,7 @@ D3D12_RESOURCE_DESC Texture2DDesc(UINT width, UINT height, DXGI_FORMAT format,
     return d;
 }
 
-// ★ [3단계] 상태 전환 배리어 (매번 6줄씩 쓰던 걸 함수로)
+// 리소스 상태 전환 배리어
 D3D12_RESOURCE_BARRIER TransitionBarrier(ID3D12Resource* resource,
     D3D12_RESOURCE_STATES before,
     D3D12_RESOURCE_STATES after)
